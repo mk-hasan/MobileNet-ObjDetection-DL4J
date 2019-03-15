@@ -1,15 +1,20 @@
+/*
 package tub.ods.bbdc2.obj.detection;
 
 import org.datavec.image.loader.Java2DNativeImageLoader;
 import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
+
+import org.deeplearning4j.nn.modelimport.keras.InvalidKerasConfigurationException;
 import org.deeplearning4j.nn.modelimport.keras.KerasModelImport;
-import org.deeplearning4j.nn.modelimport.keras.exceptions.InvalidKerasConfigurationException;
-import org.deeplearning4j.nn.modelimport.keras.exceptions.UnsupportedKerasConfigurationException;
+import org.deeplearning4j.nn.modelimport.keras.UnsupportedKerasConfigurationException;
+//import org.deeplearning4j.nn.modelimport.keras.exceptions.InvalidKerasConfigurationException;
+//import org.deeplearning4j.nn.modelimport.keras.exceptions.UnsupportedKerasConfigurationException;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.deeplearning4j.zoo.util.imagenet.ImageNetLabels;
+import org.deeplearning4j.zoo.util.BaseLabels;
 import org.deeplearning4j.nn.layers.objdetect.DetectedObject;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.shade.jackson.databind.ObjectMapper;
@@ -33,7 +38,7 @@ public class testModel {
 
         int tileSize = 224;
         try {
-            restoredCNN = KerasModelImport.importKerasModelAndWeights(modelFile.getAbsolutePath(), new int[]{tileSize, tileSize, 3}, false);
+            restoredCNN = (ComputationGraph) KerasModelImport.importKerasModelAndWeights(modelFile.getAbsolutePath(), new int[]{tileSize, tileSize, 3}, false);
 
         } catch (InvalidKerasConfigurationException ex) {
             errorMessage = "Could not load CNN model: " + ex.getMessage() + "  Cause:  " + ex.getCause();
@@ -59,6 +64,10 @@ public class testModel {
             System.out.println("*******************************************");
             System.out.println("Outputting sample predictions for File " + modelFile.getAbsolutePath());
 
+            System.out.println(restoredCNN.summary());
+
+
+
             BufferedImage image = ImageIO.read(iamgeFile1);
             DataNormalization scaler = new ImagePreProcessingScaler(-1.0, 1.0);
             Java2DNativeImageLoader loader = new Java2DNativeImageLoader(tileSize, tileSize, 3);
@@ -68,10 +77,12 @@ public class testModel {
             INDArray[] output1 = restoredCNN.output(false, indArray1);
 
 
+
            // Layer layer = restoredCNN.getOutputLayer(0);
 
 
             //output1[1].shape();
+            //ImageNetLabel il = new ImageNetLabel();
             //System.out.println(output1[1].shape());
             List<Prediction> predictions = decodePredictions(output1[0]);
             String s = predictionsToString(predictions);
@@ -104,30 +115,34 @@ public class testModel {
         int[] top5 = new int[5];
         float[] top5Prob = new float[5];
 
-        AccessibleImageNetLabels al = new AccessibleImageNetLabels();
-        List<String> labels =al.labels();
+        ImageNetLabel al = new ImageNetLabel();
+        List<String> labels = al.getLabels();
         int i = 0;
 
         for (INDArray currentBatch = encodedPredictions.getRow(0).dup(); i < 5; ++i) {
 
             top5[i] = Nd4j.argMax(currentBatch, 1).getInt(0, 0);
+
             top5Prob[i] = currentBatch.getFloat(0, top5[i]);
             currentBatch.putScalar(0, top5[i], 0.0D);
 
+            System.out.println(top5Prob[i]);
             decodedPredictions.add(new Prediction(labels.get(top5[i]), (top5Prob[i] * 100.0F)));
         }
 
         return decodedPredictions;
     }
 
-    public static class AccessibleImageNetLabels extends ImageNetLabels {
+*/
+/*    public static class AccessibleImageNetLabels extends ImageNetLabels {
         public AccessibleImageNetLabels() throws IOException {
             super();
         }
         public List<String> labels() throws IOException {
             return getLabels();
         }
-    }
+    }*//*
+
     private static String predictionsToString(List<Prediction> predictions) {
         StringBuilder builder = new StringBuilder();
         for (Prediction prediction : predictions) {
@@ -138,7 +153,8 @@ public class testModel {
     }
 
 
-  /*  private class Example {
+  */
+/*  private class Example {
 
         public Example() throws IOException {
         }
@@ -154,6 +170,8 @@ public class testModel {
             }
             return predictionLabels;
         }
-    }*/
+    }*//*
+
 
 }
+*/
